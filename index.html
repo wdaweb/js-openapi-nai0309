@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>36H天氣預報</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <style>
+      body {
+        background: rgba(10, 7, 26, 0.9);
+        color: whitesmoke;
+      }
+      .flexbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      table {
+        width: 100%;
+        font-weight: bold;
+      }
+      th {
+        border-bottom: 2px solid rgb(104, 104, 104);
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <h1>36H天氣預報</h1>
+    <div class="flexbox">
+      <table cellpadding="10" cellspacing="1" style="text-align: center;">
+        <thead>
+          <tr>
+            <th>編號</th>
+            <th>地區</th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <script>
+      var data;
+      // 2.寫法2
+      $.getJSON(
+        "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-001?Authorization=CWB-2D6F284A-458D-498C-B188-1799EE20D06E&downloadType=WEB&format=JSON"
+      )
+        .done(function(re) {
+          //成功的話，執行此function
+          // 資料初始化
+          data = re.cwbopendata.dataset.location;
+          let date1 = new Date(data[0].weatherElement[0].time[0].startTime);
+          let date2 = new Date(data[0].weatherElement[0].time[1].startTime);
+          let date3 = new Date(data[0].weatherElement[0].time[2].startTime);
+
+          let state1 =
+            6 <= date1.getHours() && date1.getHours() < 18 ? "day" : "night";
+          let state2 =
+            6 <= date2.getHours() && date2.getHours() < 18 ? "day" : "night";
+          let state3 =
+            6 <= date3.getHours() && date3.getHours() < 18 ? "day" : "night";
+
+          let hrst = new Array();
+          hrst[0] = "凌晨";
+          hrst[6] = "白天";
+          hrst[12] = "下午";
+          hrst[18] = "晚上";
+
+          $("thead")
+            .find("th")
+            .eq(2)
+            .text(
+              `${date1.getMonth() + 1}/${date1.getDate()} ${
+                hrst[date1.getHours()]
+              }`
+            );
+          $("thead")
+            .find("th")
+            .eq(3)
+            .text(
+              `${date2.getMonth() + 1}/${date2.getDate()} ${
+                hrst[date2.getHours()]
+              }`
+            );
+          $("thead")
+            .find("th")
+            .eq(4)
+            .text(
+              `${date3.getMonth() + 1}/${date3.getDate()} ${
+                hrst[date3.getHours()]
+              }`
+            );
+
+          let print = "";
+
+          // 處理各縣市的天氣變化tr>td
+          for (let i = 0; i < data.length; i++) {
+            print += `
+                <tr>
+                <td>${i + 1}</td>
+                <td>${data[i].locationName}</td>
+                <td>
+                <img src="img-weather/${state1}/${
+              data[i].weatherElement[0].time[0].parameter.parameterValue
+            }.svg">
+                ${
+                  data[i].weatherElement[0].time[0].parameter.parameterName
+                }｜溫度：${
+              data[i].weatherElement[2].time[0].parameter.parameterName
+            }~${data[i].weatherElement[1].time[0].parameter.parameterName}
+                </td>
+                <td>
+                <img src="img-weather/${state2}/${
+              data[i].weatherElement[0].time[1].parameter.parameterValue
+            }.svg">
+                ${
+                  data[i].weatherElement[0].time[1].parameter.parameterName
+                }｜溫度：${
+              data[i].weatherElement[2].time[1].parameter.parameterName
+            }~${data[i].weatherElement[1].time[1].parameter.parameterName}
+                </td>
+                <td>
+                <img src="img-weather/${state3}/${
+              data[i].weatherElement[0].time[2].parameter.parameterValue
+            }.svg">
+                ${
+                  data[i].weatherElement[0].time[2].parameter.parameterName
+                }｜溫度：${
+              data[i].weatherElement[2].time[2].parameter.parameterName
+            }~${data[i].weatherElement[1].time[2].parameter.parameterName}
+                </td>
+                </tr>
+                `;
+          }
+
+          $("tbody").html(print);
+        })
+        .fail(function() {
+          //失敗的話，執行此function
+          console.log("get api fail");
+        });
+
+      /*
+        如果需要等待兩筆以上的API寫法
+        $.when(
+            $getJSON("urlA").done(function(re){data1=re}),
+            $getJSON("urlB").done(function(re){data2=re}),
+        ).then(
+            console.log(data1,data2)
+        )
+        */
+
+      // getJSON的兩種寫法
+      /* 1.寫法1
+        $.ajax({
+            url:"https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-001?Authorization=CWB-2D6F284A-458D-498C-B188-1799EE20D06E&downloadType=WEB&format=JSON",
+            method:"GET",
+            dataType:"json",
+            success:function(re){
+                // console.log(re);
+                data=re;
+            }
+        });
+        */
+    </script>
+  </body>
+</html>
